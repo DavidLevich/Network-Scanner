@@ -21,9 +21,9 @@ def scan(ip_addr):
     # Generate ARP request and ethernet frame
     arp_req = scp.ARP(pdst=ip_addr)
     broadcast_frame = scp.Ether(dst='ff:ff:ff:ff:ff:ff')
-    broadcast_req = broadcast_frame / arp_req
 
     # Send combined frame and receieve responses
+    broadcast_req = broadcast_frame / arp_req
     responses = scp.srp(broadcast_req, timeout=1, verbose=False)
     
     # Only accept answered responses
