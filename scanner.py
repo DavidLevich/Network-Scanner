@@ -1,5 +1,5 @@
-# David Iosilevich
-# Private Network Scanner
+# By David Iosilevich
+# Network Scanner using ARP
 
 import argparse
 import scapy.all as scp
