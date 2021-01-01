@@ -2,32 +2,35 @@
 # Private Network Scanner
 
 import argparse
-import scapy.all as scapy
+import scapy.all as scp
 from mac_vendor_lookup import MacLookup
 
 
 def getArgs():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-t', dest='target', help='Target IP Address/Address Frame')
+    parser.add_argument('-t', dest='target', help='Target IP Address/Size of Prefix in Bits (e.g. -t xxx.xxx.x.x/24), find default gateway using "ifconfig" or "ipconfig".')
     options = parser.parse_args()
 
     if not options.target:
-        parser.error('Please specify target correctly. Use --help for more info.')
+        parser.error('Please specify target and prefix correctly. Use --help for more info.')
     
     return options
 
 
 def scan(ip_addr):
-    # Send ARP request and generate ethernet frame
-    req = scapy.ARP(pdst=ip_addr)
-    broadcast_frame = scapy.Ether(dst='ff:ff:ff:ff:ff:ff')
-    broadcast_req = broadcast_frame / req
+    # Generate ARP request and ethernet frame
+    arp_req = scp.ARP(pdst=ip_addr)
+    broadcast_frame = scp.Ether(dst='ff:ff:ff:ff:ff:ff')
+    broadcast_req = broadcast_frame / arp_req
 
-    # Only accept hosts that answered
-    answered = scapy.srp(broadcast_req, timeout=1, verbose=False)[0]
+    # Send combined frame and receieve responses
+    responses = scp.srp(broadcast_req, timeout=1, verbose=False)
+    
+    # Only accept answered responses
+    answered = responses[0]
+
+    # Traverse and parse responses
     dict_list = []
-
-    # Traverse hosts
     for i in range(len(answered)):
         ip = answered[i][1].psrc
         mac = answered[i][1].hwsrc
@@ -56,8 +59,8 @@ def display(dict_list):
 if __name__ == '__main__':
     options = getArgs()
 
-    print('[*] Scanning network...', end='')
+    print('\n[*] Scanning network...', end='')
     output = scan(options.target)
-    print('\t\tdone')
+    print('\tdone')
 
     display(output)
